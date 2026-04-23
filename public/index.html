@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Amazon ECR — CodeBuild</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-mesh" aria-hidden="true"></div>
+
+  <main class="layout">
+    <header class="hero">
+      <div class="brand-aws-logo-wrap">
+        <svg
+          class="brand-aws-logo"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 220 64"
+          width="220"
+          height="64"
+          role="img"
+          aria-label="Amazon Web Services"
+        >
+          <title>Amazon Web Services</title>
+          <text
+            x="110"
+            y="38"
+            text-anchor="middle"
+            fill="#ffffff"
+            font-family="'Source Sans 3', 'Segoe UI', system-ui, sans-serif"
+            font-size="40"
+            font-weight="700"
+            letter-spacing="-0.04em"
+          >aws</text>
+          <path
+            fill="none"
+            stroke="#ffffff"
+            stroke-width="4"
+            stroke-linecap="round"
+            d="M 38 48 Q 110 60 182 48"
+          />
+        </svg>
+      </div>
+      <span class="pill">AWS · ECR · CodeBuild · Bitbucket</span>
+      <h1>Registry build console</h1>
+      <p class="lede">
+        Connect a Bitbucket repo, choose an <strong>Amazon ECR</strong> repository and tag, then trigger <strong>CodeBuild</strong> to build your Dockerfile and push the image.
+      </p>
+      <p class="hero-links">
+        <a href="/docs" target="_blank" rel="noopener">OpenAPI docs</a>
+      </p>
+    </header>
+
+    <div class="workspace-grid">
+      <div class="panel">
+        <div class="panel-inner">
+          <section class="section" aria-labelledby="sec-source">
+            <div class="section-head-row">
+              <h2 class="section-head" id="sec-source">
+                <span class="step">1</span>
+                Source
+              </h2>
+              <button type="button" class="btn-clear" id="resetSourceBtn" onclick="resetSource()">
+                Reset
+              </button>
+            </div>
+            <div class="field">
+              <label for="repoUrl">Bitbucket repository URL</label>
+              <input
+                id="repoUrl"
+                class="input"
+                type="url"
+                autocomplete="url"
+                placeholder="https://bitbucket.org/workspace/repo.git"
+              />
+            </div>
+            <button type="button" class="btn btn-ghost" id="fetchBranchesBtn" onclick="loadBranches()">
+              <span class="btn-label">Fetch branches</span>
+            </button>
+            <div class="field" style="margin-top: 1rem">
+              <label for="branch">Branch</label>
+              <div class="combo">
+                <input
+                  id="branch"
+                  class="input combo-input"
+                  type="text"
+                  placeholder="Type to filter branches…"
+                  autocomplete="off"
+                  role="combobox"
+                  aria-autocomplete="list"
+                  aria-controls="branch-list"
+                  aria-expanded="false"
+                />
+                <ul id="branch-list" class="combo-list" role="listbox" hidden></ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" aria-labelledby="sec-registry">
+            <h2 class="section-head" id="sec-registry">
+              <span class="step">2</span>
+              Amazon ECR
+            </h2>
+            <div class="field">
+              <label for="arRepo">ECR repository name</label>
+              <div class="combo">
+                <input
+                  id="arRepo"
+                  class="input combo-input"
+                  type="text"
+                  placeholder="Type to filter repositories…"
+                  autocomplete="off"
+                  role="combobox"
+                  aria-autocomplete="list"
+                  aria-controls="arRepo-list"
+                  aria-expanded="false"
+                />
+                <ul id="arRepo-list" class="combo-list" role="listbox" hidden></ul>
+              </div>
+            </div>
+            <button type="button" class="btn btn-secondary btn-secondary--full" id="newArtifactRepoBtn" onclick="enterArtifactRepoCreateMode()">
+              Create new ECR repository
+            </button>
+            <div id="createRepoPanel" class="create-repo-panel" hidden>
+              <div class="field field--tight">
+                <label for="newArRepoName">New repository name</label>
+                <input
+                  id="newArRepoName"
+                  class="input"
+                  type="text"
+                  placeholder="e.g. my-service"
+                  autocomplete="off"
+                />
+              </div>
+              <p class="field-hint">Calls <code class="inline-code">POST /api/aws/create-repo</code> with <code class="inline-code">{ "repo": "…" }</code></p>
+              <div class="create-repo-actions">
+                <button type="button" class="btn btn-primary btn--inline" id="submitCreateRepoBtn" onclick="submitCreateArtifactRepo()">
+                  Create in ECR
+                </button>
+                <button type="button" class="btn btn-secondary btn--inline" id="cancelCreateRepoBtn" onclick="cancelArtifactRepoCreateMode()">
+                  Cancel
+                </button>
+              </div>
+            </div>
+            <button type="button" class="btn btn-secondary btn-secondary--full" id="refreshReposBtn" onclick="loadArtifactRepos()">
+              Refresh repository list
+            </button>
+          </section>
+
+          <section class="section" aria-labelledby="sec-build">
+            <h2 class="section-head" id="sec-build">
+              <span class="step">3</span>
+              Image tag &amp; build
+            </h2>
+            <div class="field field--tag">
+              <label for="tag">Image tag</label>
+              <input
+                id="tag"
+                class="input"
+                type="text"
+                placeholder="e.g. v1.0.0 or latest"
+                autocomplete="off"
+              />
+            </div>
+            <button type="button" class="btn btn-primary" id="buildBtn" onclick="startBuild()">
+              <span class="btn-label">Trigger CodeBuild &amp; push to ECR</span>
+            </button>
+          </section>
+        </div>
+      </div>
+
+      <aside class="panel log-panel">
+        <div class="panel-inner">
+          <div class="status-wrap status-wrap--side">
+            <div class="status-head">
+              <h3>Activity log</h3>
+              <button type="button" class="btn-clear" id="clearLogBtn">Clear</button>
+            </div>
+            <div id="status" class="status-log" role="log" aria-live="polite"></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <p class="footer-note">
+      UI talks to this app’s REST API. Configure AWS credentials and CodeBuild on the server.
+    </p>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
