@@ -37,6 +37,12 @@ This screenshot illustrates triggering a Docker image build. Users select a repo
 ![Screenshot 05](screenshots/05.png)  
 Finally, this shows the build status and real-time logs from CloudWatch. Users can monitor the progress of their builds, view logs, and check for completion or errors.
 
+## Demo Video
+
+Watch a complete walkthrough of the AWS Registry application in action:
+
+[![AWS Registry Demo](screenshots/aws.mp4)](screenshots/aws.mp4)
+
 ## Architecture Diagram
 
 ```
